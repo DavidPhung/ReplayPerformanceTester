@@ -13,15 +13,17 @@ namespace PerformanceTester
     public class ReplayUnit : DatabaseEventExecutionContext
     {
         public IList<DatabaseEvent> Events { get; }
+        public string DatabaseName { get; }
         public IDictionary<int, OdbcConnection> Connections { get; }
         public ConnectionInfo ConnectionInfo { get; }
         public Stopwatch Stopwatch { get; }
 
         private static Mutex mutex = new Mutex();
 
-        public ReplayUnit(ConnectionInfo connectionInfo)
+        public ReplayUnit(ConnectionInfo connectionInfo, string databaseName)
         {
             ConnectionInfo = connectionInfo;
+            DatabaseName = databaseName;
             Events = new List<DatabaseEvent>();
             Connections = new Dictionary<int, OdbcConnection>();
             Stopwatch = new Stopwatch();

@@ -11,6 +11,7 @@ namespace PerformanceTester
     public interface DatabaseEventExecutionContext
     {
         ConnectionInfo ConnectionInfo { get; }
+        string DatabaseName { get; }
         IList<DatabaseEvent> Events { get; }
         IDictionary<int, OdbcConnection> Connections { get; }
         //the stopwatch here gives more control, 

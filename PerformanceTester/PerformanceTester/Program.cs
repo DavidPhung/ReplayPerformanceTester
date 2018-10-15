@@ -24,7 +24,7 @@ namespace PerformanceTester
         {
             //Read command arguments
             ConnectionInfo connectionInfo = new ConnectionInfo(args[0]);
-            string databaseUT = args[1];
+            string databaseName = args[1];
             string snapshotName = args[2];
             string setupTraceFile = args[3];
             string traceFile = args[4];
@@ -33,7 +33,7 @@ namespace PerformanceTester
             string outputFile = args[7];
 
             GUIDataMonitor monitor = new GUIDataMonitor();
-            ReplayManager replayManager = new ReplayManager(connectionInfo, databaseUT, snapshotName, processName, monitor);
+            ReplayManager replayManager = new ReplayManager(connectionInfo, databaseName, snapshotName, processName, monitor);
 
             replayManager.SetupTraces.Add(setupTraceFile);
             replayManager.TestTrace = traceFile;

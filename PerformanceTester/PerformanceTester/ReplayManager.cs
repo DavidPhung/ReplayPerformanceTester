@@ -20,7 +20,7 @@ namespace PerformanceTester
 
         private ConnectionInfo connectionInfo;
         private string processName;
-        private string databaseUT;
+        private string databaseName;
 
         private GUIDataMonitor monitor;
 
@@ -33,7 +33,7 @@ namespace PerformanceTester
             this.SnapshotName = snapshotName;
             this.processName = processName;
             this.monitor = monitor;
-            this.databaseUT = databaseUT;
+            this.databaseName = databaseUT;
         }
 
         public void Run(int nbrRepeats)
@@ -52,8 +52,8 @@ namespace PerformanceTester
                                     "where EventClass = 11 or EventClass = 13 or EventClass = 14 " +
                                     "or EventClass = 15 or EventClass = 17";
                     DataTable dt = OdbcUtils.ExecuteReader(conn, s);
-                    TracePreprocessor.Preprocess(dt, databaseUT);
-                    ReplayUnit u = new SingleConnectionReplayUnit(connectionInfo);
+                    TracePreprocessor.Preprocess(dt, databaseName);
+                    ReplayUnit u = new SingleConnectionReplayUnit(connectionInfo, databaseName);
                     DatabaseEventBuilder.Build(u, dt);
                     setupReplays.Add(u);
                     Console.WriteLine("completed");
@@ -65,8 +65,8 @@ namespace PerformanceTester
                                 "where EventClass = 11 or EventClass = 13 or EventClass = 14 " +
                                 "or EventClass = 15 or EventClass = 17";
                 DataTable testTable = OdbcUtils.ExecuteReader(conn, sql);
-                TracePreprocessor.Preprocess(testTable, databaseUT);
-                testReplay = new SingleConnectionReplayUnit(connectionInfo);
+                TracePreprocessor.Preprocess(testTable, databaseName);
+                testReplay = new SingleConnectionReplayUnit(connectionInfo, databaseName);
                 DatabaseEventBuilder.Build(testReplay, testTable);
                 Console.WriteLine("completed");
             }
@@ -78,7 +78,7 @@ namespace PerformanceTester
                 Console.WriteLine("----------");
 
                 Console.Write("Restoring snapshot ... ");
-                SQLServerUtils.RestoreSnapshot(SnapshotName, databaseUT, connectionInfo);
+                SQLServerUtils.RestoreSnapshot(SnapshotName, databaseName, connectionInfo);
                 Console.WriteLine("completed");
 
                 bool cancelled = false;

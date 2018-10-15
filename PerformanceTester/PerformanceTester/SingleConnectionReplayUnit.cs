@@ -12,14 +12,14 @@ namespace PerformanceTester
     {
         public OdbcConnection ExistingConnection { get; set; }
 
-        public SingleConnectionReplayUnit(ConnectionInfo info) 
-            : base(info)
+        public SingleConnectionReplayUnit(ConnectionInfo info, string databaseName) 
+            : base(info, databaseName)
         {
 
         }
 
-        public SingleConnectionReplayUnit(ConnectionInfo info, OdbcConnection existingConnection)
-            : base(info)
+        public SingleConnectionReplayUnit(ConnectionInfo info, string databaseName, OdbcConnection existingConnection)
+            : base(info, databaseName)
         {
             this.ExistingConnection = existingConnection;
         }
@@ -37,7 +37,7 @@ namespace PerformanceTester
                     if (token != null && token.Value.IsCancellationRequested) break;
 
                     DatabaseEvent e = Events[i];
-                    if (e.DatabaseName.Equals(ConnectionInfo.Database) && (e is QueryEvent || e is NonQueryEvent))
+                    if (e.DatabaseName.Equals(DatabaseName) && (e is QueryEvent || e is NonQueryEvent))
                     {
                         using (OdbcCommand cmd = new OdbcCommand(e.Text, conn))
                         {
