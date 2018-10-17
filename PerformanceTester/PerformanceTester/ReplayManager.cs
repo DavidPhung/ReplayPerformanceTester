@@ -11,7 +11,7 @@ namespace PerformanceTester
 {
     class ReplayManager
     {
-        public List<string> SetupTraces { get; protected set; }
+        public string SetupTrace { get; set; }
         public string TestTrace { get; set; }
         public string SnapshotName { get; protected set; }
 
@@ -26,7 +26,6 @@ namespace PerformanceTester
 
         public ReplayManager(ConnectionInfo connectionInfo, string databaseUT, string snapshotName, string processName, GUIDataMonitor monitor)
         {
-            SetupTraces = new List<string>();
             this.connectionInfo = connectionInfo;
             RunTimeMillis = new List<long>();
             MemReaders = new List<MemoryReader>();
@@ -38,27 +37,25 @@ namespace PerformanceTester
 
         public void Run(int nbrRepeats)
         {
-            List<ReplayUnit> setupReplays = new List<ReplayUnit>();
+            ReplayUnit setupReplay = null;
             ReplayUnit testReplay = null;
 
             using (OdbcConnection conn = new OdbcConnection(OdbcUtils.CreateConnectionString(connectionInfo)))
             {
                 conn.Open();
-                foreach (var trace in SetupTraces)
+                if (!SetupTrace.Equals("--"))
                 {
-                    Console.Write("Loading setup trace " + trace + " ... ");
+                    Console.Write("Loading setup trace " + SetupTrace + " ... ");
                     string s = "select EventClass, TextData, EventSequence, StartTime, EndTime, SPID, DatabaseName " +
-                                    "from sys.fn_trace_gettable(N'" + trace + "', default) " +
+                                    "from sys.fn_trace_gettable(N'" + SetupTrace + "', default) " +
                                     "where EventClass = 11 or EventClass = 13 or EventClass = 14 " +
                                     "or EventClass = 15 or EventClass = 17";
-                    DataTable dt = OdbcUtils.ExecuteReader(conn, s);
-                    TracePreprocessor.Preprocess(dt, databaseName);
-                    ReplayUnit u = new SingleConnectionReplayUnit(connectionInfo, databaseName);
-                    DatabaseEventBuilder.Build(u, dt);
-                    setupReplays.Add(u);
+                    DataTable replayTable = OdbcUtils.ExecuteReader(conn, s);
+                    TracePreprocessor.Preprocess(replayTable, databaseName);
+                    setupReplay = new SingleConnectionReplayUnit(connectionInfo, databaseName);
+                    DatabaseEventBuilder.Build(setupReplay, replayTable);
                     Console.WriteLine("completed");
                 }
-
                 Console.Write("Loading test trace " + TestTrace + " ... ");
                 string sql = "select EventClass, TextData, EventSequence, StartTime, EndTime, SPID, DatabaseName " +
                                 "from sys.fn_trace_gettable(N'" + TestTrace + "', default) " +
@@ -82,10 +79,10 @@ namespace PerformanceTester
                 Console.WriteLine("completed");
 
                 bool cancelled = false;
-                for (int j = 0; j < SetupTraces.Count; j++)
+                if (!SetupTrace.Equals("--"))
                 {
-                    Console.WriteLine("Running setup trace " + SetupTraces[j] + " (q to cancel)");
-                    if (!RunReplayAsCancellableTask(setupReplays[j]))
+                    Console.WriteLine("Running setup trace " + SetupTrace + " (q to cancel)");
+                    if (!RunReplayAsCancellableTask(setupReplay))
                     {
                         cancelled = true;
                         break;

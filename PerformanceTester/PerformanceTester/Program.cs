@@ -35,7 +35,7 @@ namespace PerformanceTester
             GUIDataMonitor monitor = new GUIDataMonitor();
             ReplayManager replayManager = new ReplayManager(connectionInfo, databaseName, snapshotName, processName, monitor);
 
-            replayManager.SetupTraces.Add(setupTraceFile);
+            replayManager.SetupTrace = setupTraceFile;
             replayManager.TestTrace = traceFile;
 
             var task = Task.Run(() => RunReplayManager(replayManager, nbrRepeats, outputFile));
