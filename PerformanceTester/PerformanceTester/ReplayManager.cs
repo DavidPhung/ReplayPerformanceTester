@@ -106,6 +106,8 @@ namespace PerformanceTester
                     break;
                 }
 
+                OdbcConnection.ReleaseObjectPool();
+
                 bool cancelled = false;
                 if (!setupTrace.Equals("--"))
                 {

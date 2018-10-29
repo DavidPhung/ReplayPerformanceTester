@@ -18,6 +18,8 @@ namespace PerformanceTester
             OdbcConnection conn = null;
             Context.Connections.TryGetValue(Spid, out conn);
             conn.Close();
+            conn.Dispose();
+            OdbcConnection.ReleaseObjectPool();
             Context.Connections.Remove(Spid);
         }
     }

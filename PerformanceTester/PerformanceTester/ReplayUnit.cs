@@ -51,7 +51,12 @@ namespace PerformanceTester
             finally
             {
                 foreach (OdbcConnection conn in Connections.Values)
+                {
                     conn.Close();
+                    conn.Dispose();
+                }
+                OdbcConnection.ReleaseObjectPool();
+                Connections.Clear();
             }
         }
 
