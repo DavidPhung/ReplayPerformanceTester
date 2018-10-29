@@ -10,7 +10,7 @@ namespace PerformanceTester
 {
     public interface DatabaseEventExecutionContext
     {
-        ConnectionInfo ConnectionInfo { get; }
+        string ConnectionString { get; }
         string DatabaseName { get; }
         IList<DatabaseEvent> Events { get; }
         IDictionary<int, OdbcConnection> Connections { get; }

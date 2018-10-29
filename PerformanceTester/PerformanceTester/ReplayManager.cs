@@ -11,28 +11,34 @@ namespace PerformanceTester
 {
     class ReplayManager
     {
-        public string SetupTrace { get; set; }
-        public string TestTrace { get; set; }
-        public string SnapshotName { get; protected set; }
+        private string setupTrace;
+        private string testTrace;
+        private string snapshotName;
+
+        private string connectionString;
+        private string processName;
+        private string databaseName;
+        private string replayMode;
+        private string resetMethod;
+
+        private GUIDataMonitor monitor;
 
         public List<long> RunTimeMillis { get; protected set; }
         public List<MemoryReader> MemReaders { get; protected set; }
 
-        private ConnectionInfo connectionInfo;
-        private string processName;
-        private string databaseName;
-
-        private GUIDataMonitor monitor;
-
-        public ReplayManager(ConnectionInfo connectionInfo, string databaseUT, string snapshotName, string processName, GUIDataMonitor monitor)
+        public ReplayManager(ProgramArguments args, GUIDataMonitor monitor)
         {
-            this.connectionInfo = connectionInfo;
+            connectionString = OdbcUtils.CreateConnectionString(args);
             RunTimeMillis = new List<long>();
             MemReaders = new List<MemoryReader>();
-            this.SnapshotName = snapshotName;
-            this.processName = processName;
+            snapshotName = args.Snapshot;
+            processName = args.Process;
+            databaseName = args.TestDatabase;
+            setupTrace = args.SetupTraceFile;
+            testTrace = args.TestTraceFile;
+            replayMode = args.ReplayMode;
+            resetMethod = args.ResetMethod;
             this.monitor = monitor;
-            this.databaseName = databaseUT;
         }
 
         public void Run(int nbrRepeats)
@@ -40,30 +46,36 @@ namespace PerformanceTester
             ReplayUnit setupReplay = null;
             ReplayUnit testReplay = null;
 
-            using (OdbcConnection conn = new OdbcConnection(OdbcUtils.CreateConnectionString(connectionInfo)))
+            using (OdbcConnection conn = new OdbcConnection(connectionString))
             {
                 conn.Open();
-                if (!SetupTrace.Equals("--"))
+                if (!setupTrace.Equals("--"))
                 {
-                    Console.Write("Loading setup trace " + SetupTrace + " ... ");
+                    Console.Write("Loading setup trace " + setupTrace + " ... ");
                     string s = "select EventClass, TextData, EventSequence, StartTime, EndTime, SPID, DatabaseName " +
-                                    "from sys.fn_trace_gettable(N'" + SetupTrace + "', default) " +
+                                    "from sys.fn_trace_gettable(N'" + setupTrace + "', default) " +
                                     "where EventClass = 11 or EventClass = 13 or EventClass = 14 " +
                                     "or EventClass = 15 or EventClass = 17";
                     DataTable replayTable = OdbcUtils.ExecuteReader(conn, s);
                     TracePreprocessor.Preprocess(replayTable, databaseName);
-                    setupReplay = new SingleConnectionReplayUnit(connectionInfo, databaseName);
+                    setupReplay = new SingleConnectionReplayUnit(connectionString, databaseName);
                     DatabaseEventBuilder.Build(setupReplay, replayTable);
                     Console.WriteLine("completed");
                 }
-                Console.Write("Loading test trace " + TestTrace + " ... ");
+                Console.Write("Loading test trace " + testTrace + " ... ");
                 string sql = "select EventClass, TextData, EventSequence, StartTime, EndTime, SPID, DatabaseName " +
-                                "from sys.fn_trace_gettable(N'" + TestTrace + "', default) " +
+                                "from sys.fn_trace_gettable(N'" + testTrace + "', default) " +
                                 "where EventClass = 11 or EventClass = 13 or EventClass = 14 " +
                                 "or EventClass = 15 or EventClass = 17";
                 DataTable testTable = OdbcUtils.ExecuteReader(conn, sql);
                 TracePreprocessor.Preprocess(testTable, databaseName);
-                testReplay = new SingleConnectionReplayUnit(connectionInfo, databaseName);
+                if (replayMode.Equals(ProgramArguments.REPLAY_MODE_MULTI_CONNECTION))
+                {
+                    testReplay = new ReplayUnit(connectionString, databaseName);
+                }else
+                {
+                    testReplay = new SingleConnectionReplayUnit(connectionString, databaseName);
+                }
                 DatabaseEventBuilder.Build(testReplay, testTable);
                 Console.WriteLine("completed");
             }
@@ -75,13 +87,13 @@ namespace PerformanceTester
                 Console.WriteLine("----------");
 
                 Console.Write("Restoring snapshot ... ");
-                SQLServerUtils.RestoreSnapshot(SnapshotName, databaseName, connectionInfo);
+                SQLServerUtils.RestoreSnapshot(snapshotName, databaseName, connectionString);
                 Console.WriteLine("completed");
 
                 bool cancelled = false;
-                if (!SetupTrace.Equals("--"))
+                if (!setupTrace.Equals("--"))
                 {
-                    Console.WriteLine("Running setup trace " + SetupTrace + " (q to cancel)");
+                    Console.WriteLine("Running setup trace " + setupTrace + " (q to cancel)");
                     if (!RunReplayAsCancellableTask(setupReplay))
                     {
                         cancelled = true;
@@ -96,7 +108,7 @@ namespace PerformanceTester
                 }
 
                 testReplay.Reset();
-                Console.WriteLine("Running test trace " + TestTrace + " (q to cancel)");
+                Console.WriteLine("Running test trace " + testTrace + " (q to cancel)");
                 MemoryReader mr = new MemoryReader(processName);
                 mr.StartMeasure();
                 if (!RunReplayAsCancellableTask(testReplay))

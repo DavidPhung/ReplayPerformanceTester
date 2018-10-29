@@ -10,17 +10,17 @@ namespace PerformanceTester
 {
     class OdbcUtils
     {
-        public static string CreateConnectionString(ConnectionInfo connectionInfo)
+        public static string CreateConnectionString(ProgramArguments args)
         {
-            if (!connectionInfo.Dsn.Equals(""))
-                return "Dsn=" + connectionInfo.Dsn + ";Uid=" + connectionInfo.UserID +
-                    ";Pwd=" + connectionInfo.Password + ";";
+            if (!args.Dsn.Equals(""))
+                return "Dsn=" + args.Dsn + ";Uid=" + args.UserID +
+                    ";Pwd=" + args.Password + ";";
 
-            return "Driver={" + connectionInfo.DriverName
-                + "}; server=" + connectionInfo.Server
-                + "; database=" + connectionInfo.Database
-                + "; Uid=" + connectionInfo.UserID
-                + ";Pwd=" + connectionInfo.Password
+            return "Driver={" + args.DriverName
+                + "}; server=" + args.Server
+                + "; database=" + args.Database
+                + "; Uid=" + args.UserID
+                + ";Pwd=" + args.Password
                 + ";";
         }
 

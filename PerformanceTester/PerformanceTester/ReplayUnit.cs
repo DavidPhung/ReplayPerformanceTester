@@ -15,14 +15,14 @@ namespace PerformanceTester
         public IList<DatabaseEvent> Events { get; }
         public string DatabaseName { get; }
         public IDictionary<int, OdbcConnection> Connections { get; }
-        public ConnectionInfo ConnectionInfo { get; }
+        public string ConnectionString { get; }
         public Stopwatch Stopwatch { get; }
 
         private static Mutex mutex = new Mutex();
 
-        public ReplayUnit(ConnectionInfo connectionInfo, string databaseName)
+        public ReplayUnit(string connectionString, string databaseName)
         {
-            ConnectionInfo = connectionInfo;
+            ConnectionString = connectionString;
             DatabaseName = databaseName;
             Events = new List<DatabaseEvent>();
             Connections = new Dictionary<int, OdbcConnection>();
@@ -36,7 +36,6 @@ namespace PerformanceTester
 
         public virtual void Run(CancellationToken? token = null)
         {
-            string connectionString = OdbcUtils.CreateConnectionString(ConnectionInfo);
             Stopwatch.Reset();
             try
             {

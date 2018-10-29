@@ -15,8 +15,7 @@ namespace PerformanceTester
 
         public override void Execute()
         {
-            string connString = OdbcUtils.CreateConnectionString(Context.ConnectionInfo);
-            OdbcConnection conn = new OdbcConnection(connString);
+            OdbcConnection conn = new OdbcConnection(Context.ConnectionString);
             conn.Open();
             Context.Connections.Add(Spid, conn);
         }

@@ -12,23 +12,22 @@ namespace PerformanceTester
     {
         public OdbcConnection ExistingConnection { get; set; }
 
-        public SingleConnectionReplayUnit(ConnectionInfo info, string databaseName) 
-            : base(info, databaseName)
+        public SingleConnectionReplayUnit(string connectionString, string databaseName) 
+            : base(connectionString, databaseName)
         {
 
         }
 
-        public SingleConnectionReplayUnit(ConnectionInfo info, string databaseName, OdbcConnection existingConnection)
-            : base(info, databaseName)
+        public SingleConnectionReplayUnit(string connectionString, string databaseName, OdbcConnection existingConnection)
+            : base(connectionString, databaseName)
         {
             this.ExistingConnection = existingConnection;
         }
 
         public override void Run(CancellationToken? token)
         {
-            string connectionString = OdbcUtils.CreateConnectionString(ConnectionInfo);
             Stopwatch.Reset();
-            using (OdbcConnection conn = ExistingConnection ?? new OdbcConnection(connectionString))
+            using (OdbcConnection conn = ExistingConnection ?? new OdbcConnection(ConnectionString))
             {
                 if (conn != ExistingConnection) conn.Open();
 

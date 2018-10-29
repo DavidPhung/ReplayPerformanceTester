@@ -67,6 +67,7 @@
     <Reference Include="WindowsFormsIntegration" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ProgramArguments.cs" />
     <Compile Include="DatabaseEvent\DatabaseEvent.cs" />
     <Compile Include="DatabaseEvent\ExistingConnectionEvent.cs" />
     <Compile Include="DatabaseEvent\LoginEvent.cs" />
@@ -77,7 +78,6 @@
     <Compile Include="DatabaseEvent\DatabaseEventExecutionContext.cs" />
     <Compile Include="EventClass.cs" />
     <Compile Include="MemoryReader.cs" />
-    <Compile Include="ConnectionInfo.cs" />
     <Compile Include="OdbcUtils.cs" />
     <Compile Include="Form1.cs">
       <SubType>Form</SubType>

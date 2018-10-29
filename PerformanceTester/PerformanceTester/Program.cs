@@ -23,22 +23,12 @@ namespace PerformanceTester
         static void Main(string[] args)
         {
             //Read command arguments
-            ConnectionInfo connectionInfo = new ConnectionInfo(args[0]);
-            string databaseName = args[1];
-            string snapshotName = args[2];
-            string setupTraceFile = args[3];
-            string traceFile = args[4];
-            string processName = args[5];
-            int nbrRepeats = int.Parse(args[6]);
-            string outputFile = args[7];
+            ProgramArguments arguments = ProgramArguments.ReadFromFile(args[0]);
 
             GUIDataMonitor monitor = new GUIDataMonitor();
-            ReplayManager replayManager = new ReplayManager(connectionInfo, databaseName, snapshotName, processName, monitor);
+            ReplayManager replayManager = new ReplayManager(arguments, monitor);
 
-            replayManager.SetupTrace = setupTraceFile;
-            replayManager.TestTrace = traceFile;
-
-            var task = Task.Run(() => RunReplayManager(replayManager, nbrRepeats, outputFile));
+            var task = Task.Run(() => RunReplayManager(replayManager, arguments.NbrRepeats, arguments.OutputFile));
 
             Thread guiThread = new Thread(() => DisplayGUI(monitor));
             guiThread.SetApartmentState(ApartmentState.STA);

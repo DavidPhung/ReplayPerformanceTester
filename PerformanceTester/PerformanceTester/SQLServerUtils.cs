@@ -10,9 +10,9 @@ namespace PerformanceTester
 {
     class SQLServerUtils
     {
-        public static void RestoreSnapshot(string snapshotName, string databaseName, ConnectionInfo connectionInfo)
+        public static void RestoreSnapshot(string snapshotName, string databaseName,string connectionString)
         {
-            using (OdbcConnection conn = new OdbcConnection(OdbcUtils.CreateConnectionString(connectionInfo)))
+            using (OdbcConnection conn = new OdbcConnection(connectionString))
             {
                 conn.Open();
                 //kill existing connections
