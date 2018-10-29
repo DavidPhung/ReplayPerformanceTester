@@ -44,9 +44,10 @@ namespace PerformanceTester
             args.Password = FindValue(lines, "Password", "=").Trim();
             args.Dsn = FindValue(lines, "Dsn", "=").Trim();
 
-            args.ReplayMode = FindValue(lines, "ReplayMode", "=").Trim();
-            args.ResetMethod = FindValue(lines, "ResetMethod", "=").Trim();
+            args.ReplayMode = FindValue(lines, "ReplayMode", "=").Trim().ToLower();
+            args.ResetMethod = FindValue(lines, "ResetMethod", "=").Trim().ToLower();
             args.Snapshot = FindValue(lines, "Snapshot", "=").Trim();
+            args.BackupFile = FindValue(lines, "BackupFile", "=").Trim();
             args.TestDatabase = FindValue(lines, "TestDatabase", "=").Trim();
             args.SetupTraceFile = FindValue(lines, "SetupTraceFile", "=").Trim();
             args.TestTraceFile = FindValue(lines, "TestTraceFile", "=").Trim();

@@ -15,23 +15,43 @@ namespace PerformanceTester
             using (OdbcConnection conn = new OdbcConnection(connectionString))
             {
                 conn.Open();
-                //kill existing connections
-                string s1 = "USE master;" +
-                    "DECLARE @kill varchar(8000) = ''; " +
-                        "SELECT @kill = @kill + 'kill ' + CONVERT(varchar(5), session_id) + ';'" +
-                    "FROM sys.dm_exec_sessions" +
-                    " WHERE database_id = db_id('rpctst')" +
-                    "EXEC(@kill); ";
+                //close existing connections by setting single user mode
+                string s1 = "ALTER DATABASE " + databaseName +
+                    " SET SINGLE_USER WITH ROLLBACK IMMEDIATE;";
 
                 //restore database from snapshot
                 string s2 = "USE master;" +
                     "RESTORE DATABASE rpctst FROM DATABASE_SNAPSHOT = '" + snapshotName + "';"
                     ;
-                OdbcUtils.ExecuteNonQuery(conn, s1 + s2);
-                OdbcUtils.ExecuteNonQuery(conn, "USE " + databaseName + ";");
+
+                //set back to multi user mode
+                string s3 = "ALTER DATABASE " + databaseName +
+                    " SET MULTI_USER WITH ROLLBACK IMMEDIATE;";
+
+                OdbcUtils.ExecuteNonQuery(conn, s1 + s2 + s3);
             }
         }
 
+        public static void RestoreFromBackup(string backupFile, string databaseName, string connectionString)
+        {
+            using (OdbcConnection conn = new OdbcConnection(connectionString))
+            {
+                conn.Open();
+                //close existing connections by setting single user mode
+                string s1 = "ALTER DATABASE " + databaseName + 
+                    " SET SINGLE_USER WITH ROLLBACK IMMEDIATE;";
 
+                //restore from backup
+                string s2 = "USE master;" +
+                    "RESTORE DATABASE rpctst" +
+                    " FROM DISK = '" + backupFile + "'" +
+                    " WITH REPLACE;";
+
+                //set back to multi user mode
+                string s3 = "ALTER DATABASE " + databaseName + 
+                    " SET MULTI_USER WITH ROLLBACK IMMEDIATE;";
+                OdbcUtils.ExecuteNonQuery(conn, s1 + s2 + s3);
+            }
+        }
     }
 }

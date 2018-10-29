@@ -14,12 +14,14 @@ namespace PerformanceTester
         private string setupTrace;
         private string testTrace;
         private string snapshotName;
+        private string backupFile;
 
         private string connectionString;
         private string processName;
         private string databaseName;
         private string replayMode;
         private string resetMethod;
+
 
         private GUIDataMonitor monitor;
 
@@ -38,6 +40,7 @@ namespace PerformanceTester
             testTrace = args.TestTraceFile;
             replayMode = args.ReplayMode;
             resetMethod = args.ResetMethod;
+            this.backupFile = args.BackupFile;
             this.monitor = monitor;
         }
 
@@ -49,6 +52,7 @@ namespace PerformanceTester
             using (OdbcConnection conn = new OdbcConnection(connectionString))
             {
                 conn.Open();
+                //Loading setup trace
                 if (!setupTrace.Equals("--"))
                 {
                     Console.Write("Loading setup trace " + setupTrace + " ... ");
@@ -86,9 +90,21 @@ namespace PerformanceTester
             {
                 Console.WriteLine("----------");
 
-                Console.Write("Restoring snapshot ... ");
-                SQLServerUtils.RestoreSnapshot(snapshotName, databaseName, connectionString);
-                Console.WriteLine("completed");
+                if (resetMethod.Equals(ProgramArguments.RESET_METHOD_SNAPSHOT))
+                {
+                    Console.Write("Restoring snapshot ... ");
+                    SQLServerUtils.RestoreSnapshot(snapshotName, databaseName, connectionString);
+                    Console.WriteLine("completed");
+                }else if (resetMethod.Equals(ProgramArguments.RESET_METHOD_BACKUP))
+                {
+                    Console.Write("Restoring from backup ... ");
+                    SQLServerUtils.RestoreFromBackup(backupFile, databaseName, connectionString);
+                    Console.WriteLine("completed");
+                }else
+                {
+                    Console.WriteLine("Invalid reset method");
+                    break;
+                }
 
                 bool cancelled = false;
                 if (!setupTrace.Equals("--"))
