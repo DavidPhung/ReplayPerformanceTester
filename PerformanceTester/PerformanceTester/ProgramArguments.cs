@@ -32,6 +32,7 @@ namespace PerformanceTester
         public string Process { get; protected set; }
         public int NbrRepeats { get; protected set; }
         public string OutputFile { get; protected set; }
+        public int NbrWarmup { get; protected set; }
 
 
         public static ProgramArguments ReadFromFile(string filename)
@@ -55,6 +56,7 @@ namespace PerformanceTester
             args.Process = FindValue(lines, "Process", "=").Trim();
             args.NbrRepeats = int.Parse(FindValue(lines, "NbrRepeats", "=").Trim());
             args.OutputFile = FindValue(lines, "OutputFile", "=").Trim();
+            args.NbrWarmup = int.Parse(FindValue(lines, "NbrWarmup", "=").Trim());
 
             return args;
         }

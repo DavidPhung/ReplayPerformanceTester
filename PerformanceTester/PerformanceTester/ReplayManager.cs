@@ -21,7 +21,7 @@ namespace PerformanceTester
         private string databaseName;
         private string replayMode;
         private string resetMethod;
-
+        private int nbrWarmup;
 
         private GUIDataMonitor monitor;
 
@@ -40,6 +40,7 @@ namespace PerformanceTester
             testTrace = args.TestTraceFile;
             replayMode = args.ReplayMode;
             resetMethod = args.ResetMethod;
+            nbrWarmup = args.NbrWarmup;
             this.backupFile = args.BackupFile;
             this.monitor = monitor;
         }
@@ -48,6 +49,7 @@ namespace PerformanceTester
         {
             ReplayUnit setupReplay = null;
             ReplayUnit testReplay = null;
+            ReplayUnit warmupReplay = null;
 
             using (OdbcConnection conn = new OdbcConnection(connectionString))
             {
@@ -85,10 +87,69 @@ namespace PerformanceTester
                 }
                 DatabaseEventBuilder.Build(testReplay, testTable);
                 Console.WriteLine("completed");
+
+                warmupReplay = new SingleConnectionReplayUnit(connectionString, databaseName);
+                DatabaseEventBuilder.Build(warmupReplay, testTable);
             }
 
             RunTimeMillis.Clear();
             MemReaders.Clear();
+
+            Console.WriteLine("----------");
+            Console.WriteLine("WARM UP");
+            for (int i = 0; i < nbrWarmup; i++)
+            {
+                Console.WriteLine("----------");
+
+                if (resetMethod.Equals(ProgramArguments.RESET_METHOD_SNAPSHOT))
+                {
+                    Console.Write("Restoring snapshot ... ");
+                    SQLServerUtils.RestoreSnapshot(snapshotName, databaseName, connectionString);
+                    Console.WriteLine("completed");
+                }
+                else if (resetMethod.Equals(ProgramArguments.RESET_METHOD_BACKUP))
+                {
+                    Console.Write("Restoring from backup ... ");
+                    SQLServerUtils.RestoreFromBackup(backupFile, databaseName, connectionString);
+                    Console.WriteLine("completed");
+                }
+                else
+                {
+                    Console.WriteLine("Invalid reset method");
+                    break;
+                }
+
+                OdbcConnection.ReleaseObjectPool();
+
+                bool cancelled = false;
+                if (!setupTrace.Equals("--"))
+                {
+                    setupReplay.Reset();
+                    Console.WriteLine("Running setup trace " + setupTrace + " (q to cancel)");
+                    if (!RunReplayAsCancellableTask(setupReplay))
+                    {
+                        cancelled = true;
+                        break;
+                    }
+                }
+
+                if (cancelled)
+                {
+                    Console.WriteLine("Cancelled");
+                    break;
+                }
+
+                warmupReplay.Reset();
+                Console.WriteLine("Running test trace " + testTrace + " (q to cancel)");
+                if (!RunReplayAsCancellableTask(warmupReplay))
+                {
+                    Console.WriteLine("Cancelled");
+                    break;
+                }
+            }
+
+            Console.WriteLine("----------");
+            Console.WriteLine("ACTUAL TEST");
             for (int i = 0; i < nbrRepeats; i++)
             {
                 Console.WriteLine("----------");
@@ -114,6 +175,7 @@ namespace PerformanceTester
                 bool cancelled = false;
                 if (!setupTrace.Equals("--"))
                 {
+                    setupReplay.Reset();
                     Console.WriteLine("Running setup trace " + setupTrace + " (q to cancel)");
                     if (!RunReplayAsCancellableTask(setupReplay))
                     {
@@ -144,6 +206,7 @@ namespace PerformanceTester
 
                 monitor.AddRunTimeMillis(testReplay.RunTimeMillis);
                 monitor.AddAvgMem(mr.GetAverage());
+
             }
         }
 
