@@ -9,8 +9,8 @@ namespace PerformanceTester
 {
     public class LogoutEvent : DatabaseEvent
     {
-        public LogoutEvent(DatabaseEventExecutionContext context, int spid, string text)
-            : base(context, -1, "", spid, text, null, null)
+        public LogoutEvent(DatabaseEventExecutionContext context, int spid, string text, DateTime? startTime, long eventSequence)
+            : base(context, AUDIT_LOGOUT, "", spid, text, startTime, null, eventSequence)
         { }
 
         public override void Execute()

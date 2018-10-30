@@ -9,8 +9,8 @@ namespace PerformanceTester
 {
     public class LoginEvent : DatabaseEvent
     {
-        public LoginEvent(DatabaseEventExecutionContext context, int spid, string text)
-            : base(context, -1, "", spid, text, null, null)
+        public LoginEvent(DatabaseEventExecutionContext context, int spid, string text, DateTime? startTime, long eventSequence)
+            : base(context, AUDIT_LOGIN, "", spid, text, startTime, null, eventSequence)
         { }
 
         public override void Execute()

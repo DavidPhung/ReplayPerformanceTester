@@ -9,8 +9,8 @@ namespace PerformanceTester
 {
     public class QueryEvent : DatabaseEvent
     {
-        public QueryEvent(DatabaseEventExecutionContext context, int spid, string text, string databaseName) 
-            :base(context, -1, databaseName, spid, text, null, null)
+        public QueryEvent(DatabaseEventExecutionContext context, int spid, string text, string databaseName, DateTime? startTime, long eventSequence) 
+            :base(context, QUERY, databaseName, spid, text, startTime, null, eventSequence)
         {}
 
         public override void Execute()

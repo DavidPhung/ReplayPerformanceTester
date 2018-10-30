@@ -26,7 +26,7 @@ namespace PerformanceTester
                 int eventClass = (int)row["EventClass"];
                 DataRow prevRow = traceTable.Rows[i - 1];
                 string prevText = prevRow["TextData"].ToString();
-                if (eventClass == EventClass.AUDIT_LOGOUT 
+                if (eventClass == DatabaseEventBuilder.AUDIT_LOGOUT 
                     && prevText.Trim().ToLower().Equals("exec sp_reset_connection"))
                 {
                     prevRow.Delete();
@@ -60,13 +60,13 @@ namespace PerformanceTester
                 DataRow row = traceTable.Rows[i];
                 int eventClass = (int)row["EventClass"];
                 int spid = (int)row["SPID"];
-                if (eventClass == EventClass.AUDIT_LOGIN || eventClass == EventClass.EXISTING_CONNECTION)
+                if (eventClass == DatabaseEventBuilder.AUDIT_LOGIN || eventClass == DatabaseEventBuilder.EXISTING_CONNECTION)
                 {
                     List<DataRow> l = new List<DataRow>();
                     l.Add(row);
                     connections.Add(l);
                     spidDict.Add(spid, connections.Count - 1);
-                }else if (eventClass == EventClass.AUDIT_LOGOUT)
+                }else if (eventClass == DatabaseEventBuilder.AUDIT_LOGOUT)
                 {
                     int index = spidDict[spid];
                     connections[index].Add(row);
@@ -106,9 +106,9 @@ namespace PerformanceTester
                 foreach (var row in connections[i])
                 {
                     int eventClass = (int)row["EventClass"];
-                    if (eventClass != EventClass.AUDIT_LOGIN
-                        && eventClass != EventClass.EXISTING_CONNECTION
-                        && eventClass != EventClass.AUDIT_LOGOUT
+                    if (eventClass != DatabaseEventBuilder.AUDIT_LOGIN
+                        && eventClass != DatabaseEventBuilder.EXISTING_CONNECTION
+                        && eventClass != DatabaseEventBuilder.AUDIT_LOGOUT
                         && row["DatabaseName"].Equals(targetDatabase))
                     {
                         remove = false;

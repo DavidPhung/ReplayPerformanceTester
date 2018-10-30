@@ -76,7 +76,6 @@
     <Compile Include="DatabaseEvent\Query.cs" />
     <Compile Include="DatabaseEventBuilder.cs" />
     <Compile Include="DatabaseEvent\DatabaseEventExecutionContext.cs" />
-    <Compile Include="EventClass.cs" />
     <Compile Include="MemoryReader.cs" />
     <Compile Include="OdbcUtils.cs" />
     <Compile Include="Form1.cs">

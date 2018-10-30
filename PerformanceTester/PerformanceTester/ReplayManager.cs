@@ -75,7 +75,10 @@ namespace PerformanceTester
                 TracePreprocessor.Preprocess(testTable, databaseName);
                 if (replayMode.Equals(ProgramArguments.REPLAY_MODE_MULTI_CONNECTION))
                 {
-                    testReplay = new ReplayUnit(connectionString, databaseName);
+                    testReplay = new ReplayUnit(connectionString, databaseName, false);
+                }else if (replayMode.Equals(ProgramArguments.REPLAY_MODE_MULTI_CONNECTION_WITH_DELAY))
+                {
+                    testReplay = new ReplayUnit(connectionString, databaseName, true);
                 }else
                 {
                     testReplay = new SingleConnectionReplayUnit(connectionString, databaseName);

@@ -13,13 +13,13 @@ namespace PerformanceTester
         public OdbcConnection ExistingConnection { get; set; }
 
         public SingleConnectionReplayUnit(string connectionString, string databaseName) 
-            : base(connectionString, databaseName)
+            : base(connectionString, databaseName, false)
         {
 
         }
 
         public SingleConnectionReplayUnit(string connectionString, string databaseName, OdbcConnection existingConnection)
-            : base(connectionString, databaseName)
+            : base(connectionString, databaseName, false)
         {
             this.ExistingConnection = existingConnection;
         }

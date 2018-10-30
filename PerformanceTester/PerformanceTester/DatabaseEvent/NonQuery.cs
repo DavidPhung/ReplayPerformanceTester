@@ -9,8 +9,8 @@ namespace PerformanceTester
 {
     public class NonQueryEvent : DatabaseEvent
     {
-        public NonQueryEvent(DatabaseEventExecutionContext context, int spid, string text, string databaseName)
-            : base(context, -1, databaseName, spid, text, null, null)
+        public NonQueryEvent(DatabaseEventExecutionContext context, int spid, string text, string databaseName, DateTime? startTime, long eventSequence)
+            : base(context, NONQUERY, databaseName, spid, text, startTime, null, eventSequence)
         { }
 
         public override void Execute()

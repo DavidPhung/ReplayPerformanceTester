@@ -9,8 +9,8 @@ namespace PerformanceTester
 {
     public class ExistingConnectionEvent : DatabaseEvent
     {
-        public ExistingConnectionEvent(DatabaseEventExecutionContext context, int spid, string text)
-            : base(context, -1, "", spid, text, null, null)
+        public ExistingConnectionEvent(DatabaseEventExecutionContext context, int spid, string text, DateTime? startTime, long eventSequence)
+            : base(context, EXISTING_CONNECTION, "", spid, text, startTime, null, eventSequence)
         { }
 
         public override void Execute()

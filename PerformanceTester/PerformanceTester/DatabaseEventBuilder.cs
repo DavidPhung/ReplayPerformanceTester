@@ -10,6 +10,12 @@ namespace PerformanceTester
 {
     class DatabaseEventBuilder
     {
+        public const int RPC_STARTING = 11;
+        public const int SQL_BATCH_STARTING = 13;
+        public const int AUDIT_LOGIN = 14;
+        public const int AUDIT_LOGOUT = 15;
+        public const int EXISTING_CONNECTION = 17;
+
         public static void Build(DatabaseEventExecutionContext context, DataTable traceTable)
         {
             IList<DatabaseEvent> list = context.Events;
@@ -33,26 +39,28 @@ namespace PerformanceTester
 
                 int eventClass = (int)traceTable.Rows[i]["EventClass"];
 
+                long eventSequence = (long)traceTable.Rows[i]["EventSequence"];
+
                 DatabaseEvent e = null;
                 switch (eventClass)
                 {
-                    case EventClass.AUDIT_LOGIN:
-                        e = new LoginEvent(context, spid, text);
+                    case AUDIT_LOGIN:
+                        e = new LoginEvent(context, spid, text, startTime, eventSequence);
                         break;
-                    case EventClass.AUDIT_LOGOUT:
-                        e = new LogoutEvent(context, spid, text);
+                    case AUDIT_LOGOUT:
+                        e = new LogoutEvent(context, spid, text, startTime, eventSequence);
                         break;
-                    case EventClass.EXISTING_CONNECTION:
-                        e = new ExistingConnectionEvent(context, spid, text);
+                    case EXISTING_CONNECTION:
+                        e = new ExistingConnectionEvent(context, spid, text, startTime, eventSequence);
                         break;
-                    case EventClass.SQL_BATCH_STARTING:
+                    case SQL_BATCH_STARTING:
                         if (text.Substring(0, 6).ToLower().Equals("select"))
-                            e = new QueryEvent(context, spid, text, databaseName);
+                            e = new QueryEvent(context, spid, text, databaseName, startTime, eventSequence);
                         else
-                            e = new NonQueryEvent(context, spid, text, databaseName);
+                            e = new NonQueryEvent(context, spid, text, databaseName, startTime, eventSequence);
                         break;
-                    case EventClass.RPC_STARTING:
-                        e = new NonQueryEvent(context, spid, text, databaseName);
+                    case RPC_STARTING:
+                        e = new NonQueryEvent(context, spid, text, databaseName, startTime, eventSequence);
                         break;
                     default:
                         break;

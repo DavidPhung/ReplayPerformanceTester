@@ -11,6 +11,7 @@ namespace PerformanceTester
     {
         public const string REPLAY_MODE_SINGLE_CONNECTION = "single";
         public const string REPLAY_MODE_MULTI_CONNECTION = "multi";
+        public const string REPLAY_MODE_MULTI_CONNECTION_WITH_DELAY = "multi_delay";
         public const string RESET_METHOD_SNAPSHOT = "snapshot";
         public const string RESET_METHOD_BACKUP = "backup";
 

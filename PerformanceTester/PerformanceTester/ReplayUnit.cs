@@ -19,14 +19,16 @@ namespace PerformanceTester
         public Stopwatch Stopwatch { get; }
 
         private static Mutex mutex = new Mutex();
+        private bool simulateDelay;
 
-        public ReplayUnit(string connectionString, string databaseName)
+        public ReplayUnit(string connectionString, string databaseName, bool simulateDelay)
         {
             ConnectionString = connectionString;
             DatabaseName = databaseName;
             Events = new List<DatabaseEvent>();
             Connections = new Dictionary<int, OdbcConnection>();
             Stopwatch = new Stopwatch();
+            this.simulateDelay = simulateDelay;
         }
 
         public virtual void Reset()
@@ -46,6 +48,18 @@ namespace PerformanceTester
                     DatabaseEvent e = Events[i];
                     e.Execute();
                     ExecutedEvents = i + 1;
+
+                    if (simulateDelay && i > 0)
+                    {
+                        DatabaseEvent prevEvent = Events[i - 1];
+                        if ((prevEvent.EventType == DatabaseEvent.NONQUERY || prevEvent.EventType == DatabaseEvent.QUERY) &&
+                            (e.EventType == DatabaseEvent.NONQUERY || e.EventType == DatabaseEvent.QUERY) &&
+                            e.StartTime != null && prevEvent.StartTime != null)
+                        {
+                            double delay = (e.StartTime - prevEvent.StartTime).Value.TotalMilliseconds;
+                            if (delay > 0) Thread.Sleep((int)delay);
+                        }
+                    }
                 }
             }
             finally
@@ -58,6 +72,15 @@ namespace PerformanceTester
                 OdbcConnection.ReleaseObjectPool();
                 Connections.Clear();
             }
+        }
+
+        private DatabaseEvent LastNonLogoutEvent(int i)
+        {
+            for (int j = i - 1; j >= 0; j--)
+            {
+                if (Events[j].EventType != DatabaseEvent.AUDIT_LOGOUT) return Events[j];
+            }
+            return null;
         }
 
         public long RunTimeMillis { get { return Stopwatch.ElapsedMilliseconds; } }
