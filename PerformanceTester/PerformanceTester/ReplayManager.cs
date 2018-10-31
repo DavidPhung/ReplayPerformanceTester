@@ -55,7 +55,7 @@ namespace PerformanceTester
             {
                 conn.Open();
                 //Loading setup trace
-                if (!setupTrace.Equals("--"))
+                if (!setupTrace.Equals(""))
                 {
                     Console.Write("Loading setup trace " + setupTrace + " ... ");
                     string s = "select EventClass, TextData, EventSequence, StartTime, EndTime, SPID, DatabaseName " +
@@ -122,7 +122,7 @@ namespace PerformanceTester
                 OdbcConnection.ReleaseObjectPool();
 
                 bool cancelled = false;
-                if (!setupTrace.Equals("--"))
+                if (!setupTrace.Equals(""))
                 {
                     setupReplay.Reset();
                     Console.WriteLine("Running setup trace " + setupTrace + " (q to cancel)");
@@ -173,7 +173,7 @@ namespace PerformanceTester
                 OdbcConnection.ReleaseObjectPool();
 
                 bool cancelled = false;
-                if (!setupTrace.Equals("--"))
+                if (!setupTrace.Equals(""))
                 {
                     setupReplay.Reset();
                     Console.WriteLine("Running setup trace " + setupTrace + " (q to cancel)");
