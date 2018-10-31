@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Data;
 using System.IO;
+using System.Diagnostics;
 
 namespace PerformanceTester
 {
@@ -14,8 +15,22 @@ namespace PerformanceTester
         {
             //RemoveResetConnectionProceduresAroundLogout(traceTable);
             RemoveAllResetConnectionProcedures(traceTable);
-            RemoveUnrelatedServerProcesses(traceTable, targetDatabase);
+            RemoveEventsThatDoNotTargetTestDatabase(traceTable, targetDatabase);
             ReplaceCursorEventsWithNormalEvents(traceTable);
+            ReplacePrepareEventsWithNormalEvents(traceTable);
+        }
+
+        public static void PrintTrace(DataTable traceTable)
+        {
+            for (int i = 0; i < 10; i++)
+            {
+                DataRow row = traceTable.Rows[i];
+                int eventClass = (int)row["EventClass"];
+                string text = row["TextData"].ToString();
+                long eventSeq = (long)row["EventSequence"];
+
+                Debug.WriteLine("# {0} {1}", eventClass, eventSeq);
+            }
         }
 
         public static void RemoveResetConnectionProceduresAroundLogout(DataTable traceTable)
@@ -29,6 +44,7 @@ namespace PerformanceTester
                 if (eventClass == DatabaseEventBuilder.AUDIT_LOGOUT 
                     && prevText.Trim().ToLower().Equals("exec sp_reset_connection"))
                 {
+                    
                     prevRow.Delete();
                 }
             }
@@ -49,78 +65,15 @@ namespace PerformanceTester
             traceTable.AcceptChanges();
         }
 
-        private static void RemoveUnrelatedServerProcesses(DataTable traceTable, string targetDatabase)
+        private static void RemoveEventsThatDoNotTargetTestDatabase(DataTable traceTable, string targetDatabase)
         {
-            //Group rows from same connection together
-            List<List<DataRow>> connections = new List<List<DataRow>>();
-            Dictionary<int, int> spidDict = new Dictionary<int, int>();
-
             for (int i = 0; i < traceTable.Rows.Count; i++)
             {
                 DataRow row = traceTable.Rows[i];
-                int eventClass = (int)row["EventClass"];
-                int spid = (int)row["SPID"];
-                if (eventClass == DatabaseEventBuilder.AUDIT_LOGIN || eventClass == DatabaseEventBuilder.EXISTING_CONNECTION)
-                {
-                    List<DataRow> l = new List<DataRow>();
-                    l.Add(row);
-                    connections.Add(l);
-                    spidDict.Add(spid, connections.Count - 1);
-                }else if (eventClass == DatabaseEventBuilder.AUDIT_LOGOUT)
-                {
-                    int index = spidDict[spid];
-                    connections[index].Add(row);
-                    spidDict.Remove(spid);
-                }else
-                {
-                    int index = spidDict[spid];
-                    connections[index].Add(row);
-                }
-            }
-
-            /*
-            StringBuilder sb = new StringBuilder();
-            for (int i = 0; i < connections.Count; i++)
-            {
-                sb.AppendLine("Group " + i + " ");
-                for (int j = 0; j < connections[i].Count; j++)
-                {
-                    DataRow row = connections[i][j];
-                    sb.Append("\t");
-                    sb.Append(row["EventClass"] + ",");
-                    sb.Append(row["EventSequence"] + ",");
-                    sb.Append(row["SPID"] + ",");
-                    sb.Append(row["DatabaseName"] + ",");
-                    sb.AppendLine();
-                }
-            }
-            //Console.WriteLine(sb.ToString());
-            File.WriteAllText(@"C:\Users\ThePhuong\Desktop\out.txt", sb.ToString());
-            */
-
-            //Check and remove connections that have nothing to do with target database
-            List<int> connectionsToRemove = new List<int>();
-            for (int i = 0; i < connections.Count; i++)
-            {
-                bool remove = true;
-                foreach (var row in connections[i])
-                {
-                    int eventClass = (int)row["EventClass"];
-                    if (eventClass != DatabaseEventBuilder.AUDIT_LOGIN
-                        && eventClass != DatabaseEventBuilder.EXISTING_CONNECTION
-                        && eventClass != DatabaseEventBuilder.AUDIT_LOGOUT
-                        && row["DatabaseName"].Equals(targetDatabase))
-                    {
-                        remove = false;
-                        break;
-                    }
-                }
-                if (remove) connectionsToRemove.Add(i);
-            }
-
-            foreach (int i in connectionsToRemove)
-            {
-                foreach (var row in connections[i])
+                string databaseName = row["DatabaseName"].ToString();
+                string textData = row["TextData"].ToString();
+                if (!databaseName.Equals(targetDatabase) &&
+                    !textData.Trim().ToLower().Contains("use " + targetDatabase))
                 {
                     row.Delete();
                 }
@@ -144,6 +97,28 @@ namespace PerformanceTester
                     newText = newText.Replace("''", "'");
                     row.SetField("TextData", newText);
                 }else if (text.Contains("exec sp_cursor")) 
+                {
+                    row.Delete();
+                }
+            }
+            traceTable.AcceptChanges();
+        }
+
+        private static void ReplacePrepareEventsWithNormalEvents(DataTable traceTable)
+        {
+            for (int i = 0; i < traceTable.Rows.Count; i++)
+            {
+                DataRow row = traceTable.Rows[i];
+                string text = row["TextData"].ToString();
+                if (text.Contains("exec sp_prepexec"))
+                {
+                    int f = text.IndexOf('\'');
+                    int l = text.LastIndexOf('\'');
+                    string newText = text.Substring(f + 1, l - f - 1);
+                    newText = newText.Replace("''", "'");
+                    row.SetField("TextData", newText);
+                }
+                else if (text.Contains("exec sp_unprepare"))
                 {
                     row.Delete();
                 }

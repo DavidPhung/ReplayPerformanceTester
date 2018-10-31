@@ -21,7 +21,8 @@ namespace PerformanceTester
 
                 //restore database from snapshot
                 string s2 = "USE master;" +
-                    "RESTORE DATABASE rpctst FROM DATABASE_SNAPSHOT = '" + snapshotName + "';"
+                    "RESTORE DATABASE " + databaseName + 
+                    " FROM DATABASE_SNAPSHOT = '" + snapshotName + "';"
                     ;
 
                 //set back to multi user mode
@@ -43,7 +44,7 @@ namespace PerformanceTester
 
                 //restore from backup
                 string s2 = "USE master;" +
-                    "RESTORE DATABASE rpctst" +
+                    "RESTORE DATABASE " + databaseName + 
                     " FROM DISK = '" + backupFile + "'" +
                     " WITH REPLACE;";
 

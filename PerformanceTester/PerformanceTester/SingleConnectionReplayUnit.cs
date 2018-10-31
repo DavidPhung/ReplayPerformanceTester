@@ -36,7 +36,7 @@ namespace PerformanceTester
                     if (token != null && token.Value.IsCancellationRequested) break;
 
                     DatabaseEvent e = Events[i];
-                    if (e.DatabaseName.Equals(DatabaseName) && (e is QueryEvent || e is NonQueryEvent))
+                    if (e is QueryEvent || e is NonQueryEvent)
                     {
                         using (OdbcCommand cmd = new OdbcCommand(e.Text, conn))
                         {
