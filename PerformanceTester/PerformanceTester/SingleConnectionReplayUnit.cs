@@ -40,6 +40,7 @@ namespace PerformanceTester
                     {
                         using (OdbcCommand cmd = new OdbcCommand(e.Text, conn))
                         {
+                            cmd.CommandTimeout = 300;
                             Stopwatch.Start();
                             if (e.Text.Trim().Substring(0, "select".Length).ToLower().Equals("select"))
                                 cmd.ExecuteReader().Close();

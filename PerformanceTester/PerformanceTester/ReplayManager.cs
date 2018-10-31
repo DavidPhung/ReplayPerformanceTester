@@ -113,11 +113,6 @@ namespace PerformanceTester
                     SQLServerUtils.RestoreFromBackup(backupFile, databaseName, connectionString);
                     Console.WriteLine("completed");
                 }
-                else
-                {
-                    Console.WriteLine("Invalid reset method");
-                    break;
-                }
 
                 OdbcConnection.ReleaseObjectPool();
 
@@ -164,10 +159,6 @@ namespace PerformanceTester
                     Console.Write("Restoring from backup ... ");
                     SQLServerUtils.RestoreFromBackup(backupFile, databaseName, connectionString);
                     Console.WriteLine("completed");
-                }else
-                {
-                    Console.WriteLine("Invalid reset method");
-                    break;
                 }
 
                 OdbcConnection.ReleaseObjectPool();

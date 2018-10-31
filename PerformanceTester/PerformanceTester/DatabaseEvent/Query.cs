@@ -19,6 +19,7 @@ namespace PerformanceTester
             Context.Connections.TryGetValue(Spid, out conn);
             using (OdbcCommand command = new OdbcCommand(Text, conn))
             {
+                command.CommandTimeout = 300;
                 Context.Stopwatch.Start();
                 command.ExecuteReader().Close();
                 Context.Stopwatch.Stop();

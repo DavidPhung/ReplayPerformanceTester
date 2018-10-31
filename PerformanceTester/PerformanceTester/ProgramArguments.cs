@@ -14,6 +14,7 @@ namespace PerformanceTester
         public const string REPLAY_MODE_MULTI_CONNECTION_WITH_DELAY = "multi_delay";
         public const string RESET_METHOD_SNAPSHOT = "snapshot";
         public const string RESET_METHOD_BACKUP = "backup";
+        public const string RESET_METHOD_NONE = "none";
 
         public string DriverName { get; protected set; }
         public string Server { get; protected set; }
