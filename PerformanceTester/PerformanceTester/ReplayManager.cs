@@ -27,12 +27,11 @@ namespace PerformanceTester
 
         public List<long> RunTimeMillis { get; protected set; }
         public List<MemoryReader> MemReaders { get; protected set; }
+	public MemoryReader StartMemReader;
 
         public ReplayManager(ProgramArguments args, GUIDataMonitor monitor)
         {
             connectionString = OdbcUtils.CreateConnectionString(args);
-            RunTimeMillis = new List<long>();
-            MemReaders = new List<MemoryReader>();
             snapshotName = args.Snapshot;
             processName = args.Process;
             databaseName = args.TestDatabase;
@@ -43,6 +42,9 @@ namespace PerformanceTester
             nbrWarmup = args.NbrWarmup;
             this.backupFile = args.BackupFile;
             this.monitor = monitor;
+	    RunTimeMillis = new List<long>();
+            MemReaders = new List<MemoryReader>();
+	    StartMemReader = new MemoryReader(processName);
         }
 
         public void Run(int nbrRepeats)
