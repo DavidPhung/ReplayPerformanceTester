@@ -60,7 +60,7 @@ namespace PerformanceTester
             }
             StringBuilder sb = new StringBuilder();
 	    sb.AppendLine("Starting Memory (MB): " + 
-			  Integer.toString(replayManager.StartMemReader.RecordMemoryUsage()));
+			  replayManager.StartMemReader.RecordMemoryUsage());
             sb.AppendLine("Run, Reponse Time (ms), Average Memory (MB)");
             for (int i = 0; i < replayManager.RunTimeMillis.Count; i++)
             {
