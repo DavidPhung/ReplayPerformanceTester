@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -24,7 +24,7 @@ namespace PerformanceTester
         {
             while (!end)
             {
-                RecordMemoryUsage();
+                measurements.Add(RecordMemoryUsage());
                 System.Threading.Thread.Sleep(200);
             }
         }
@@ -42,7 +42,7 @@ namespace PerformanceTester
             end = true;
         }
 
-        private void RecordMemoryUsage()
+        public int RecordMemoryUsage()
         {
             System.Diagnostics.Process proc = System.Diagnostics.Process.GetProcessesByName(processName)[0];
             int memsize = 0; // memsize in Megabyte
@@ -51,9 +51,9 @@ namespace PerformanceTester
             PC.CounterName = "Working Set - Private";
             PC.InstanceName = proc.ProcessName;
             memsize = (int)(PC.NextValue() / (int)(1024));
-            measurements.Add(memsize);
             PC.Close();
             PC.Dispose();
+		 return memsize;
         }
         public int[] GetMeasurements()
         {
