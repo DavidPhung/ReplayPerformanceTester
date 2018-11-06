@@ -67,13 +67,65 @@ namespace PerformanceTester
 
         private static void RemoveEventsThatDoNotTargetTestDatabase(DataTable traceTable, string targetDatabase)
         {
+            //Group rows from same connection together
+            List<List<DataRow>> connections = new List<List<DataRow>>();
+            Dictionary<int, int> spidDict = new Dictionary<int, int>();
+
             for (int i = 0; i < traceTable.Rows.Count; i++)
             {
                 DataRow row = traceTable.Rows[i];
-                string databaseName = row["DatabaseName"].ToString();
-                string textData = row["TextData"].ToString();
-                if (!databaseName.Equals(targetDatabase) &&
-                    !textData.Trim().ToLower().Contains("use " + targetDatabase))
+                int eventClass = (int)row["EventClass"];
+                int spid = (int)row["SPID"];
+                if (eventClass == DatabaseEventBuilder.AUDIT_LOGIN || eventClass == DatabaseEventBuilder.EXISTING_CONNECTION)
+                {
+                    List<DataRow> l = new List<DataRow>();
+                    l.Add(row);
+                    connections.Add(l);
+                    spidDict.Add(spid, connections.Count - 1);
+                }
+                else if (eventClass == DatabaseEventBuilder.AUDIT_LOGOUT)
+                {
+                    int index = spidDict[spid];
+                    connections[index].Add(row);
+                    spidDict.Remove(spid);
+                }
+                else
+                {
+                    int index = spidDict[spid];
+                    connections[index].Add(row);
+                }
+            }
+
+            List<int> connectionsToRemove = new List<int>();
+            for (int i = 0; i < connections.Count; i++)
+            {
+                bool remove = true;
+                foreach (var row in connections[i])
+                {
+                    int eventClass = (int)row["EventClass"];
+                    if (eventClass != DatabaseEventBuilder.AUDIT_LOGIN
+                        && eventClass != DatabaseEventBuilder.EXISTING_CONNECTION
+                        && eventClass != DatabaseEventBuilder.AUDIT_LOGOUT
+                        && row["DatabaseName"].Equals(targetDatabase))
+                    {
+                        remove = false;
+                        break;
+                    }
+                    if ((eventClass == DatabaseEventBuilder.AUDIT_LOGIN
+                        || eventClass == DatabaseEventBuilder.EXISTING_CONNECTION
+                        || eventClass == DatabaseEventBuilder.AUDIT_LOGOUT)
+                        && row["DatabaseName"].Equals(targetDatabase))
+                    {
+                        remove = false;
+                        break;
+                    }
+                }
+                if (remove) connectionsToRemove.Add(i);
+            }
+
+            foreach (int i in connectionsToRemove)
+            {
+                foreach (var row in connections[i])
                 {
                     row.Delete();
                 }
