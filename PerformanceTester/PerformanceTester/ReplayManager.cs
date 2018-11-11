@@ -6,6 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.SqlServer.Management.Smo.Wmi;
 
 namespace PerformanceTester
 {
@@ -27,7 +28,7 @@ namespace PerformanceTester
 
         public List<long> RunTimeMillis { get; protected set; }
         public List<MemoryReader> MemReaders { get; protected set; }
-	public MemoryReader StartMemReader;
+        public MemoryReader StartMemReader;
 
         public ReplayManager(ProgramArguments args, GUIDataMonitor monitor)
         {
@@ -42,9 +43,9 @@ namespace PerformanceTester
             nbrWarmup = args.NbrWarmup;
             this.backupFile = args.BackupFile;
             this.monitor = monitor;
-	    RunTimeMillis = new List<long>();
+            RunTimeMillis = new List<long>();
             MemReaders = new List<MemoryReader>();
-	    StartMemReader = new MemoryReader(processName);
+            StartMemReader = new MemoryReader(processName);
         }
 
         public void Run(int nbrRepeats)
@@ -80,10 +81,12 @@ namespace PerformanceTester
                 if (replayMode.Equals(ProgramArguments.REPLAY_MODE_MULTI_CONNECTION))
                 {
                     testReplay = new ReplayUnit(connectionString, databaseName, false);
-                }else if (replayMode.Equals(ProgramArguments.REPLAY_MODE_MULTI_CONNECTION_WITH_DELAY))
+                }
+                else if (replayMode.Equals(ProgramArguments.REPLAY_MODE_MULTI_CONNECTION_WITH_DELAY))
                 {
                     testReplay = new ReplayUnit(connectionString, databaseName, true);
-                }else
+                }
+                else
                 {
                     testReplay = new SingleConnectionReplayUnit(connectionString, databaseName);
                 }
@@ -156,7 +159,8 @@ namespace PerformanceTester
                     Console.Write("Restoring snapshot ... ");
                     SQLServerUtils.RestoreSnapshot(snapshotName, databaseName, connectionString);
                     Console.WriteLine("completed");
-                }else if (resetMethod.Equals(ProgramArguments.RESET_METHOD_BACKUP))
+                }
+                else if (resetMethod.Equals(ProgramArguments.RESET_METHOD_BACKUP))
                 {
                     Console.Write("Restoring from backup ... ");
                     SQLServerUtils.RestoreFromBackup(backupFile, databaseName, connectionString);
@@ -164,6 +168,9 @@ namespace PerformanceTester
                 }
 
                 OdbcConnection.ReleaseObjectPool();
+
+                //Restart service
+                //RestartService();
 
                 bool cancelled = false;
                 if (!setupTrace.Equals(""))
@@ -249,6 +256,50 @@ namespace PerformanceTester
             Console.SetCursorPosition(left, top);
             int percentage1 = (int)(100f * u.ExecutedEvents / total);
             Console.WriteLine(u.ExecutedEvents + " of " + total + " (" + percentage1 + "%)");
+        }
+
+        private void RestartService()
+        {
+            //Declare and create an instance of the ManagedComputer   
+            //object that represents the WMI Provider services.   
+            ManagedComputer mc;
+            mc = new ManagedComputer();
+            //Iterate through each service registered with the WMI Provider.   
+
+            foreach (Service svc in mc.Services)
+            {
+                Console.WriteLine(svc.Name);
+            }
+            //Reference the Microsoft SQL Server service.   
+            Service Mysvc = mc.Services["MSSQLSERVER"];
+            //Stop the service if it is running and report on the status  
+            // continuously until it has stopped.   
+            if (Mysvc.ServiceState == ServiceState.Running)
+            {
+                Mysvc.Stop();
+                Console.WriteLine(string.Format("{0} service state is {1}", Mysvc.Name, Mysvc.ServiceState));
+                while (!(string.Format("{0}", Mysvc.ServiceState) == "Stopped"))
+                {
+                    Console.WriteLine(string.Format("{0}", Mysvc.ServiceState));
+                    Mysvc.Refresh();
+                }
+                Console.WriteLine(string.Format("{0} service state is {1}", Mysvc.Name, Mysvc.ServiceState));
+                //Start the service and report on the status continuously   
+                //until it has started.   
+                Mysvc.Start();
+                while (!(string.Format("{0}", Mysvc.ServiceState) == "Running"))
+                {
+                    Console.WriteLine(string.Format("{0}", Mysvc.ServiceState));
+                    Mysvc.Refresh();
+                }
+                Console.WriteLine(string.Format("{0} service state is {1}", Mysvc.Name, Mysvc.ServiceState));
+                Console.ReadLine();
+            }
+            else
+            {
+                Console.WriteLine("SQL Server service is not running.");
+                Console.ReadLine();
+            }
         }
     }
 }

@@ -80,6 +80,16 @@ namespace PerformanceTester
             }
             return max;
         }
+
+        public long GetMin()
+        {
+            long min = long.MaxValue;
+            foreach (int m in measurements)
+            {
+                if (m < min) min = m;
+            }
+            return min;
+        }
     }
 
 }

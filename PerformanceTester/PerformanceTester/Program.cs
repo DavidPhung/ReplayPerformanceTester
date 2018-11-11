@@ -61,7 +61,7 @@ namespace PerformanceTester
             StringBuilder sb = new StringBuilder();
 	    sb.AppendLine("Starting Memory (MB): " + 
 			  replayManager.StartMemReader.RecordMemoryUsage());
-            sb.AppendLine("Run, Reponse Time (ms), Average Memory (MB)");
+            sb.AppendLine("Run, Reponse Time (ms), Average Memory (MB), Min Memory (MB), Max Memory (MB)");
             for (int i = 0; i < replayManager.RunTimeMillis.Count; i++)
             {
                 sb.Append((i + 1));
@@ -69,6 +69,10 @@ namespace PerformanceTester
                 sb.Append(replayManager.RunTimeMillis[i]);
                 sb.Append(",");
                 sb.Append(replayManager.MemReaders[i].GetAverage());
+                sb.Append(",");
+                sb.Append(replayManager.MemReaders[i].GetMin());
+                sb.Append(",");
+                sb.Append(replayManager.MemReaders[i].GetMax());
                 sb.AppendLine();
             }
             File.WriteAllText(outputFile, sb.ToString());

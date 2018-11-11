@@ -20,37 +20,6 @@ namespace PerformanceTester
             ReplacePrepareEventsWithNormalEvents(traceTable);
         }
 
-        public static void PrintTrace(DataTable traceTable)
-        {
-            for (int i = 0; i < 10; i++)
-            {
-                DataRow row = traceTable.Rows[i];
-                int eventClass = (int)row["EventClass"];
-                string text = row["TextData"].ToString();
-                long eventSeq = (long)row["EventSequence"];
-
-                Debug.WriteLine("# {0} {1}", eventClass, eventSeq);
-            }
-        }
-
-        public static void RemoveResetConnectionProceduresAroundLogout(DataTable traceTable)
-        {
-            for (int i = 1; i < traceTable.Rows.Count; i++)
-            {
-                DataRow row = traceTable.Rows[i];
-                int eventClass = (int)row["EventClass"];
-                DataRow prevRow = traceTable.Rows[i - 1];
-                string prevText = prevRow["TextData"].ToString();
-                if (eventClass == DatabaseEventBuilder.AUDIT_LOGOUT 
-                    && prevText.Trim().ToLower().Equals("exec sp_reset_connection"))
-                {
-                    
-                    prevRow.Delete();
-                }
-            }
-            traceTable.AcceptChanges();
-        }
-
         public static void RemoveAllResetConnectionProcedures(DataTable traceTable)
         {
             for (int i = 1; i < traceTable.Rows.Count; i++)
